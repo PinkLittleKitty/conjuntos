@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización de Teoría de Conjuntos</title>
+    <style>
+        /* Agregar estilo básico para los conjuntos */
+        .set {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Visualización de Teoría de Conjuntos</h1>
+
+        <!-- Campo para ingresar el número de conjuntos -->
+        <label for="numSets">Número de conjuntos:</label>
+        <input type="number" id="numSets" value="2"><br>
+
+        <!-- Botón para crear los campos de entrada de los conjuntos -->
+        <button id="createSetInputs">Crear Conjuntos</button><br>
+
+        <!-- Contenedor para los campos de entrada de los conjuntos -->
+        <div id="setInputsContainer"></div>
+
+        <!-- Campo para ingresar la operación en formato de texto -->
+        <label for="operationText">Operación (ejemplo: A = B, A - B, A ∩ B, A ∪ B, A ⊆ B, A ⊂ B, A ∆ B):</label>
+        <input type="text" id="operationText"><br>
+
+        <!-- Mostrar el resultado de la operación -->
+        <div id="operationResult"></div>
+
+        <script>
+            // Obtener referencias a los elementos de entrada
+            const numSetsInput = document.getElementById('numSets');
+            const createSetInputsButton = document.getElementById('createSetInputs');
+            const setInputsContainer = document.getElementById('setInputsContainer');
+            const operationInput = document.getElementById('operationText');
+            const operationResult = document.getElementById('operationResult');
+
+            // Agregar un event listener para crear los campos de entrada de los conjuntos
+            createSetInputsButton.addEventListener('click', createSetInputs);
+
+            function createSetInputs() {
+                const numSets = parseInt(numSetsInput.value, 10);
+
+                // Limpiar los campos de entrada existentes
+                setInputsContainer.innerHTML = '';
+
+                // Crear campos de entrada para cada conjunto
+                for (let i = 0; i < numSets; i++) {
+                    const setId = String.fromCharCode(65 + i); // Use letters of the alphabet (A, B, C, ...)
+                    const label = document.createElement('label');
+                    label.textContent = `Conjunto ${setId} (ejemplo: {1, 2, 3}):`;
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = setId;
+                    setInputsContainer.appendChild(label);
+                    setInputsContainer.appendChild(input);
+                    setInputsContainer.appendChild(document.createElement('br'));
+                }
+            }
+
+            // Agregar un event listener para calcular y mostrar el resultado de la operación
+            operationInput.addEventListener('input', () => {
+                // Obtener la operación especificada
+                const operationText = operationInput.value;
+
+                // Crear un objeto para almacenar los conjuntos
+                const sets = {};
+
+                // Obtener los conjuntos especificados
+                for (let i = 0; i < numSetsInput.value; i++) {
+                    const setId = String.fromCharCode(65 + i);
+                    const setContent = document.getElementById(setId).value;
+                    sets[setId] = new Set(setContent.match(/\d+/g).map(Number));
+                }
+
+                // Extraer los nombres de los conjuntos y la operación desde el texto
+                const match = operationText.match(/([A-Z])\s*([-∩∪⊆⊂∆=])\s*([A-Z])/);
+                if (match && match.length === 4) {
+                    const [_, setAName, operation, setBName] = match;
+                    const setA = sets[setAName];
+                    const setB = sets[setBName];
+
+                    // Realizar la operación correspondiente
+                    let result;
+
+                    if (operation === '=') {
+                        result = setA.size === setB.size && [...setA].every(x => setB.has(x));
+                    } else if (operation === '-') {
+                        result = new Set([...setA].filter(x => !setB.has(x)));
+                    } else if (operation === '∩') {
+                        result = new Set([...setA].filter(x => setB.has(x)));
+                    } else if (operation === '∪') {
+                        result = new Set([...setA, ...setB]);
+                    } else if (operation === '⊆') {
+                        result = [...setA].every(x => setB.has(x));
+                    } else if (operation === '⊂') {
+                        result = setA.size < setB.size && [...setA].every(x => setB.has(x));
+                    } else if (operation === '∆') {
+                        result = new Set([...setA, ...setB].filter(x => !(setA.has(x) && setB.has(x))));
+                    } else {
+                        result = 'Operación no válida';
+                    }
+
+                    // Mostrar el resultado
+                    if (typeof result === 'boolean') {
+                        operationResult.textContent = `Resultado de la operación: ${result ? 'Verdadero' : 'Falso'}`;
+                    } else if (result instanceof Set) {
+                        operationResult.textContent = `Resultado de la operación: {${[...result].join(', ')}}`;
+                    } else {
+                        operationResult.textContent = result;
+                    }
+                } else {
+                    operationResult.textContent = 'Formato de operación no válido';
+                }
+            });
+
+            // Inicialmente, crear los campos de entrada según el valor predeterminado
+            createSetInputs();
+        </script>
+    </body>
+</html>
